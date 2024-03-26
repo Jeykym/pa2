@@ -41,11 +41,11 @@ class CBigInt {
 public:
     CBigInt()
         : sign(false),
-          val("0") {}
+          value("0") {}
 
     CBigInt(int value_)
-        :   sign(value_ < 0),
-            val(std::to_string(abs(value_))) {}
+        : sign(value_ < 0),
+          value(std::to_string(abs(value_))) {}
 
     friend std::ostream& operator<<(std::ostream& os, const CBigInt& num) {
         // negative value
@@ -53,13 +53,13 @@ public:
             os << '-';
         }
 
-        os << num.val;
+        os << num.value;
         return os;
     }
 private:
     // if sign the value is negative
     bool sign;
-    std::string val;
+    std::string value;
 };
 
 #ifndef __PROGTEST__
