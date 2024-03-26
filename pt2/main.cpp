@@ -40,8 +40,12 @@
 class CBigInt {
 public:
     CBigInt()
-        :   sign(false),
-            val("0") {}
+        : sign(false),
+          val("0") {}
+
+    CBigInt(int value_)
+        :   sign(value_ < 0),
+            val(std::to_string(abs(value_))) {}
 
     friend std::ostream& operator<<(std::ostream& os, const CBigInt& num) {
         // negative value
@@ -65,17 +69,23 @@ static bool equal ( const CBigInt & x, const char val [] )
     oss << x;
     return oss . str () == val;
 }
-//static bool equalHex ( const CBigInt & x, const char val [] )
+//static bool equalHex ( const CBigInt & x, const char value [] )
 //{
 //    return true; // hex output is needed for bonus tests only
 //    // std::ostringstream oss;
 //    // oss << std::hex << x;
-//    // return oss . str () == val;
+//    // return oss . str () == value;
 //}
 int main ()
 {
     CBigInt a;
     assert(equal(a, "0"));
+
+    CBigInt b(10);
+    assert(equal(b, "10"));
+
+    CBigInt c(-50);
+    assert(equal(c, "-50"));
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
