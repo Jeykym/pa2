@@ -19,9 +19,9 @@
 #include <stdexcept>
 #endif /* __PROGTEST__ */
 
-class CBigInt
-{
-public:
+//class CBigInt
+//{
+//public:
     // default constructor
     // copying/assignment/destruction
     // int constructor
@@ -33,8 +33,19 @@ public:
     // comparison operators, any combination {CBigInt/int/string} {<,<=,>,>=,==,!=} {CBigInt/int/string}
     // output operator <<
     // input operator >>
+//private:
+//};
+
+
+class CBigInt {
+public:
+    CBigInt()
+        :   sign(false),
+            val("0") {}
 private:
-    // todo
+    // if sign the value is negative
+    bool sign;
+    std::string val;
 };
 
 #ifndef __PROGTEST__
