@@ -42,6 +42,16 @@ public:
     CBigInt()
         :   sign(false),
             val("0") {}
+
+    friend std::ostream& operator<<(std::ostream& os, const CBigInt& num) {
+        // negative value
+        if (num.sign) {
+            os << '-';
+        }
+
+        os << num.val;
+        return os;
+    }
 private:
     // if sign the value is negative
     bool sign;
@@ -49,12 +59,12 @@ private:
 };
 
 #ifndef __PROGTEST__
-//static bool equal ( const CBigInt & x, const char val [] )
-//{
-//    std::ostringstream oss;
-//    oss << x;
-//    return oss . str () == val;
-//}
+static bool equal ( const CBigInt & x, const char val [] )
+{
+    std::ostringstream oss;
+    oss << x;
+    return oss . str () == val;
+}
 //static bool equalHex ( const CBigInt & x, const char val [] )
 //{
 //    return true; // hex output is needed for bonus tests only
@@ -64,6 +74,8 @@ private:
 //}
 int main ()
 {
+    CBigInt a;
+    assert(equal(a, "0"));
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
