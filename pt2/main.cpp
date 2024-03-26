@@ -47,6 +47,50 @@ public:
         : sign(value_ < 0),
           value(std::to_string(abs(value_))) {}
 
+  CBigInt(const char* value_) {
+        bool tempSign = false;
+        std::string tempValue(value_);
+
+        // handle empty input
+        if (tempValue.empty()) throw std::invalid_argument("Value is not a valid number");
+
+        // first char is '-' -> value is negative
+        if (tempValue[0] == '-') tempSign = true;
+
+        // handle leading zeros
+        bool leadingZeros = true;
+        size_t start_i = tempSign ? 1 : 0;
+
+        for (size_t i = start_i; i < tempValue.size(); i++) {
+            // handle invalid character
+            if (!isdigit(tempValue[i])) throw std::invalid_argument("Value is not a number");
+
+            // first nonzero digit
+            if (tempValue[i] != '0' && leadingZeros) {
+                leadingZeros = false;
+                start_i = i;
+            }
+        }
+
+        // string is only 0's -> the value is 0
+        if (leadingZeros) {
+            sign = false;
+            value = "0";
+        } else {
+            // all checks ok, can create the number
+            sign = tempSign;
+            // skip leading zeros and '-'
+            value = tempValue.substr(start_i);
+        }
+
+
+        // all checks ok, can create the number
+        sign = tempSign;
+        // skip leading zeros and '-'
+        value = tempValue.substr(start_i);
+    }
+
+
     friend std::ostream& operator<<(std::ostream& os, const CBigInt& num) {
         // negative value
         if (num.sign) {
@@ -78,14 +122,23 @@ static bool equal ( const CBigInt & x, const char val [] )
 //}
 int main ()
 {
-    CBigInt a;
-    assert(equal(a, "0"));
+    CBigInt a("50");
+    assert(equal(a, "50"));
 
-    CBigInt b(10);
-    assert(equal(b, "10"));
+    CBigInt b("-10");
+    assert(equal(b, "-10"));
 
-    CBigInt c(-50);
-    assert(equal(c, "-50"));
+    CBigInt c("0040");
+    assert(equal(c, "40"));
+
+    CBigInt d("-000015");
+    assert(equal(d, "-15"));
+
+    CBigInt e("000000");
+    assert(equal(e, "0"));
+
+    CBigInt f("-00000");
+    assert(equal(f, "0"));
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
