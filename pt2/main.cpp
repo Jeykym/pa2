@@ -158,6 +158,15 @@ public:
         return os;
     }
 
+    CBigInt& operator= (const CBigInt& other) {
+        if (this != &other) {
+            this->sign = other.sign;
+            this->value = other.value;
+        }
+
+        return *this;
+    }
+
 
     bool operator<(const CBigInt& other) const {
         // negative is smaller than positive
@@ -222,31 +231,17 @@ static bool equal ( const CBigInt & x, const char val [] )
 //}
 int main ()
 {
-    CBigInt a("-10");
-    CBigInt b("10");
-    assert(a < b);
+    CBigInt a;
+    CBigInt b("-10");
 
-    CBigInt c("40");
-    CBigInt d("400");
-    assert(c < d);
+    a = b;
+    assert(equal(a, "-10"));
 
-    CBigInt e("-400");
-    CBigInt f("-40");
-    assert(e < f);
+    a = 20;
+    assert(equal(a, "20"));
 
-    CBigInt g("30");
-    CBigInt h("40");
-    assert(g < h);
-
-    CBigInt i("-40");
-    CBigInt j("-30");
-    assert(i < j);
-
-    CBigInt k;
-    CBigInt l("30");
-    CBigInt m("-30");
-    assert(k < l);
-    assert(m < k);
+    a = "-00543";
+    assert(equal(a, "-543"));
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
