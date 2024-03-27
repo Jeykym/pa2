@@ -47,7 +47,7 @@ public:
         : sign(value_ < 0),
           value(std::to_string(abs(value_))) {}
 
-  CBigInt(const char* val) {
+    CBigInt(const char* val) {
         // empty string
         if (*val == '\0') throw std::invalid_argument("Value is not a valid number");
 
@@ -157,6 +157,49 @@ public:
         os << num.value;
         return os;
     }
+
+
+    bool operator<(const CBigInt& other) const {
+        // negative is smaller than positive
+        if (sign && !other.sign) return true;
+        if (!sign && other.sign) return false;
+
+        // signs are the same
+
+        // different sizes means different exponent
+
+        // negatives
+        if (sign) {
+            // bigger exponent means smaller number
+            if (value.size() > other.value.size()) return true;
+            if (value.size() < other.value.size()) return false;
+        // positives
+        } else {
+            // bigger exponent means bigger number
+            if (value.size() < other.value.size()) return true;
+            if (value.size() > other.value.size()) return false;
+        }
+
+        // same magnitude
+        // compare coefficients for each exponent
+        for (size_t i = 0; i < value.size(); i++) {
+            // negatives
+            if (sign) {
+                // bigger coefficient means smaller number
+                if (value[i] > other.value[i]) return true;
+                if (value[i] < other.value[i]) return false;
+            // positives
+            } else {
+                // smaller coefficient means smaller number
+                if (value[i] < other.value[i]) return true;
+                if (value[i] > other.value[i]) return false;
+            }
+        }
+
+        return false;
+    }
+
+
 private:
     // if sign the value is negative
     bool sign;
@@ -179,49 +222,31 @@ static bool equal ( const CBigInt & x, const char val [] )
 //}
 int main ()
 {
-    CBigInt a;
-    std::istringstream is;
+    CBigInt a("-10");
+    CBigInt b("10");
+    assert(a < b);
 
-    is.str("50");
-    assert(is >> a);
-    assert(equal(a, "50"));
+    CBigInt c("40");
+    CBigInt d("400");
+    assert(c < d);
 
-    is.clear();
-    is.str("-10");
-    assert(is >> a);
-    assert(equal(a, "-10"));
+    CBigInt e("-400");
+    CBigInt f("-40");
+    assert(e < f);
 
-    is.clear();
-    is.str("00000");
-    assert(is >> a);
-    assert(equal(a, "0"));
+    CBigInt g("30");
+    CBigInt h("40");
+    assert(g < h);
 
-    is.clear();
-    is.str("-0000");
-    assert(is >> a);
-    assert(equal(a, "0"));
+    CBigInt i("-40");
+    CBigInt j("-30");
+    assert(i < j);
 
-    is.clear();
-    is.str("48a");
-    assert(is >> a);
-    assert(equal(a, "48"));
-
-    is.clear();
-    is.str("12 34");
-    assert(is >> a);
-    assert(equal(a, "12"));
-
-    is.clear();
-    is.str("");
-    (assert(!(is >> a)));
-
-    is.clear();
-    is.str("abc");
-    assert(!(is >> a));
-
-    is.clear();
-    is.str("-def");
-    assert(!(is >> a));
+    CBigInt k;
+    CBigInt l("30");
+    CBigInt m("-30");
+    assert(k < l);
+    assert(m < k);
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
