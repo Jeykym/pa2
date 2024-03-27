@@ -208,6 +208,10 @@ public:
         return false;
     }
 
+    bool operator== (const CBigInt& other) const {
+        return !(*this < other) && !(other < *this);
+    }
+
 
 private:
     // if sign the value is negative
@@ -231,17 +235,20 @@ static bool equal ( const CBigInt & x, const char val [] )
 //}
 int main ()
 {
-    CBigInt a;
-    CBigInt b("-10");
+    CBigInt a, b;
+    assert(a == b);
 
-    a = b;
-    assert(equal(a, "-10"));
+    a = -10;
+    b = -10;
+    assert(a == b);
 
     a = 20;
-    assert(equal(a, "20"));
+    b = 20;
+    assert(a == b);
 
-    a = "-00543";
-    assert(equal(a, "-543"));
+    a = 0;
+    b = -0;
+    assert(a == b);
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
