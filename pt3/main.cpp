@@ -45,7 +45,7 @@ public:
 	explicit CPatchStr(const char* str)
 		:	size(1),
 			maxSize(10),
-			array(new Patch[size]) {
+			array(new Patch[maxSize]) {
 		// the patch is only the string
 		array[0] = {
 			0,
@@ -53,7 +53,7 @@ public:
 			strlen(str),
 			str
 		};
-
+//		length = array[0].length;
 		length = array[0].length;
 	}
 
@@ -67,15 +67,19 @@ public:
 		// one extra char for '\0'
 		char* res = (char*)malloc(length + 1);
 
+		// current patch
+		size_t pos = 0;
 		// for each patch
 		for (size_t i = 0; i < size; i++) {
 			// for each character in the patch
 			for (size_t j = 0; j < array[i].length; j++) {
-				res[i + j] = array[i].string[j];
+				res[pos + j] = array[i].string[j];
 			}
+
+			// next patch
+			pos += array[i].length;
 		}
 
-		// ending char
 		res[length] = '\0';
 
 		return res;
@@ -91,7 +95,9 @@ private:
 
 #ifndef __PROGTEST__
 int main() {
-	CPatchStr a("test");
+	CPatchStr a("abc");
+	auto string = a.toStr();
 	std::cout << a.toStr() << std::endl;
+	delete string;
 }
 #endif /* __PROGTEST__ */
