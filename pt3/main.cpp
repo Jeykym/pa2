@@ -65,7 +65,7 @@ public:
 
 	char* toStr() const {
 		// one extra char for '\0'
-		char* res = (char*)malloc(length + 1);
+		char* res = new char[length + 1];
 
 		// current patch
 		size_t pos = 0;
@@ -91,6 +91,29 @@ private:
 	size_t size;
 	size_t maxSize;
 	Patch* array;
+
+
+	bool full() const {
+		return size == maxSize;
+	}
+
+
+	void resize() {
+		// creating a new bigger array
+		maxSize *= 2;
+		auto* newArray = new Patch[maxSize];
+
+		// copying the elements to the bigger array
+		for (size_t i = 0; i < size; i++) {
+			newArray[i] = array[i];
+		}
+
+		delete [] array;
+
+		array = newArray;
+	}
+
+
 };
 
 #ifndef __PROGTEST__
