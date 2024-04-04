@@ -37,6 +37,10 @@ struct Patch {
 	size_t offset;
 	size_t length;
 	const char* string;
+
+	friend bool operator< (const Patch& lhs, size_t pos) {
+		return lhs.globalOffset < pos;
+	}
 };
 
 
@@ -53,7 +57,6 @@ public:
 			strlen(str),
 			str
 		};
-//		length = array[0].length;
 		length = array[0].length;
 	}
 
@@ -86,6 +89,34 @@ public:
 	}
 
 
+	CPatchStr& apppend(const CPatchStr& src) {
+		// first resize the array if necessary
+		if (size == maxSize) {
+			maxSize *= 2;
+			Patch* newArray = new Patch[maxSize];
+
+			// copy over old Patches
+			for (size_t i = 0; i < size; i++) {
+				newArray[i] = array[i];
+			}
+
+			delete [] array;
+			array = newArray;
+		}
+
+		length += src.length;
+		// if inserting self
+		auto originalSrcSize = src.size;
+
+		// copy Patches from src to the end of the array
+		for (size_t i = 0; i < originalSrcSize; i++) {
+			array[size++] = src.array[i];
+		}
+
+		return *this;
+	}
+
+
 private:
 	size_t length;
 	size_t size;
@@ -93,34 +124,34 @@ private:
 	Patch* array;
 
 
-	bool full() const {
-		return size == maxSize;
-	}
+	// returns the index of the patch at pos
+	size_t find(Patch* arr, size_t arraySize, size_t pos) const {
+		size_t low = 0;
+		size_t high = arraySize;
 
+		while (low < high) {
+			size_t mid = low + (high - low) / 2;
 
-	void resize() {
-		// creating a new bigger array
-		maxSize *= 2;
-		auto* newArray = new Patch[maxSize];
-
-		// copying the elements to the bigger array
-		for (size_t i = 0; i < size; i++) {
-			newArray[i] = array[i];
+			if (arr[mid] < pos) {
+				low = mid + 1;
+			} else {
+				high = mid;
+			}
 		}
 
-		delete [] array;
-
-		array = newArray;
+		return high - 1;
 	}
-
-
 };
 
 #ifndef __PROGTEST__
 int main() {
 	CPatchStr a("abc");
-	auto string = a.toStr();
+	CPatchStr b("def");
+	a.apppend(b);
+	auto str = a.toStr();
 	std::cout << a.toStr() << std::endl;
-	delete string;
+	delete str;
 }
+
+
 #endif /* __PROGTEST__ */
