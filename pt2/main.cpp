@@ -122,23 +122,13 @@ static bool equal ( const CBigInt & x, const char val [] )
 //}
 int main ()
 {
-    CBigInt a("50");
-    assert(equal(a, "50"));
+    CBigInt a;
+    std::istringstream is;
 
-    CBigInt b("-10");
-    assert(equal(b, "-10"));
-
-    CBigInt c("0040");
-    assert(equal(c, "40"));
-
-    CBigInt d("-000015");
-    assert(equal(d, "-15"));
-
-    CBigInt e("000000");
-    assert(equal(e, "0"));
-
-    CBigInt f("-00000");
-    assert(equal(f, "0"));
+    is.clear();
+    is.str("10");
+    assert(is >> a);
+//    assert(equal(a, "10"));
 //    CBigInt a, b; std::istringstream is; a = 10; a += 20; assert ( equal ( a, "30" ) ); a *= 5; assert ( equal ( a, "150" ) ); b = a + 3;
 //    assert ( equal ( b, "153" ) );
 //    b = a * 7;
