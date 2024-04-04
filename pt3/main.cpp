@@ -10,27 +10,51 @@
 #include <stdexcept>
 #endif /* __PROGTEST__ */
 
+
+//class CPatchStr
+//{
+//public:
+//	CPatchStr ();
+//	CPatchStr ( const char * str );
+//	// copy constructor
+//	// destructor
+//	// operator =
+//	CPatchStr   subStr    ( size_t            from,
+//	size_t            len ) const;
+//	CPatchStr & append    ( const CPatchStr & src );
+//
+//	CPatchStr & insert    ( size_t            pos,
+//	const CPatchStr & src );
+//	CPatchStr & remove    ( size_t            from,
+//	size_t            len );
+//	char      * toStr     () const;
+//private:
+//	// todo
+//};
+
 struct Patch {
 	size_t globalOffset;
 	size_t offset;
 	size_t length;
-	const char* ptr;
+	const char* string;
 };
 
 
 class CPatchStr {
 public:
 	explicit CPatchStr(const char* str)
-		:	size(0),
+		:	size(1),
 			maxSize(10),
 			array(new Patch[size]) {
-		// first occurrence of the string
+		// the patch is only the string
 		array[0] = {
 			0,
 			0,
 			strlen(str),
 			str
 		};
+
+		length = array[0].length;
 	}
 
 
@@ -39,7 +63,27 @@ public:
 	}
 
 
+	char* toStr() const {
+		// one extra char for '\0'
+		char* res = (char*)malloc(length + 1);
+
+		// for each patch
+		for (size_t i = 0; i < size; i++) {
+			// for each character in the patch
+			for (size_t j = 0; j < array[i].length; j++) {
+				res[i + j] = array[i].string[j];
+			}
+		}
+
+		// ending char
+		res[length] = '\0';
+
+		return res;
+	}
+
+
 private:
+	size_t length;
 	size_t size;
 	size_t maxSize;
 	Patch* array;
@@ -48,5 +92,6 @@ private:
 #ifndef __PROGTEST__
 int main() {
 	CPatchStr a("test");
+	std::cout << a.toStr() << std::endl;
 }
 #endif /* __PROGTEST__ */
