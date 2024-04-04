@@ -41,12 +41,17 @@ struct Patch {
 	friend bool operator< (const Patch& lhs, size_t pos) {
 		return lhs.globalOffset < pos;
 	}
+
+
+	friend bool operator< (size_t pos, const Patch& rhs) {
+		return pos < rhs.globalOffset;
+	}
 };
 
 
 class CPatchStr {
 public:
-	explicit CPatchStr(const char* str)
+	CPatchStr(const char* str)
 		:	size(1),
 			maxSize(10),
 			array(new Patch[maxSize]) {
@@ -59,6 +64,15 @@ public:
 		};
 		length = array[0].length;
 	}
+
+	CPatchStr(
+		size_t size,
+		Patch* arr,
+		size_t len
+	)	:	size(size),
+			maxSize(size),
+			array(arr),
+			length(len) {}
 
 
 	~CPatchStr() {
@@ -75,12 +89,10 @@ public:
 		// for each patch
 		for (size_t i = 0; i < size; i++) {
 			// for each character in the patch
-			for (size_t j = 0; j < array[i].length; j++) {
-				res[pos + j] = array[i].string[j];
+			auto& patch = array[i];
+			for (size_t j = 0; j < patch.length; j++) {
+				res[pos++] = patch.string[patch.offset + j];
 			}
-
-			// next patch
-			pos += array[i].length;
 		}
 
 		res[length] = '\0';
@@ -113,7 +125,43 @@ public:
 			array[size++] = src.array[i];
 		}
 
+		size_t totalOffset = 0;
+		for (size_t i = 0; i < size; i++) {
+			array[i].globalOffset = totalOffset;
+			totalOffset += array[i].length;
+		}
+
 		return *this;
+	}
+
+
+	CPatchStr subStr(size_t from, size_t len) {
+		if (len == 0) return {""};
+
+		if (from + len > length) throw std::out_of_range("Invalid indexes");
+
+		auto startPatchI = findStartPatch(array, size, from);
+		auto endPatchI = findEndPatch(startPatchI, from, len);
+
+		std::cout << "start: " << array[startPatchI].string << " end: " << array[endPatchI].string << std::endl;
+
+		// allocate new array for the substring
+		size_t count = endPatchI - startPatchI + 1;
+		std::cout << "count: " << count << std::endl;
+		Patch* newArray = new Patch[count];
+
+		// creating the substring of patches
+		size_t newArrayI = 0;
+		for (size_t i = startPatchI; i <= endPatchI; i++) {
+			newArray[newArrayI++] = array[i];
+		}
+
+		newArray[0].offset = from - array[startPatchI].globalOffset;
+		newArray[0].length = array[startPatchI].length - newArray[0].offset;
+
+		newArray[count - 1].length = from + length - array[endPatchI].globalOffset;
+
+		return {count, newArray, len};
 	}
 
 
@@ -124,22 +172,29 @@ private:
 	Patch* array;
 
 
-	// returns the index of the patch at pos
-	size_t find(Patch* arr, size_t arraySize, size_t pos) const {
-		size_t low = 0;
-		size_t high = arraySize;
-
-		while (low < high) {
-			size_t mid = low + (high - low) / 2;
-
-			if (arr[mid] < pos) {
-				low = mid + 1;
-			} else {
-				high = mid;
+	// returns the index of the patch in which is pos
+	size_t findStartPatch(Patch* arr, size_t arraySize, size_t pos) const {
+		size_t i = 0;
+		while (i <= arraySize - 1) {
+			if (pos >= arr[i].globalOffset && pos < arr[i].globalOffset + arr[i].length) {
+				break;
 			}
+			i++;
 		}
 
-		return high - 1;
+		return i;
+	}
+
+
+	// returns the index of the patch in which is pos + len
+	size_t findEndPatch(size_t startPatchI, size_t from, size_t len) {
+		// from - globalOffset to find the local offset
+		// -1 because indexing from zero
+		while (len >= array[startPatchI].length - (from - array[startPatchI].globalOffset - 1)) {
+			startPatchI++;
+		}
+
+		return startPatchI;
 	}
 };
 
@@ -147,10 +202,10 @@ private:
 int main() {
 	CPatchStr a("abc");
 	CPatchStr b("def");
+	CPatchStr c("ghi");
 	a.apppend(b);
-	auto str = a.toStr();
-	std::cout << a.toStr() << std::endl;
-	delete str;
+	a.apppend(c);
+	std::cout << a.subStr(2, 3).toStr() << std::endl;
 }
 
 
