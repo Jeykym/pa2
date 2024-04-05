@@ -67,12 +67,24 @@ public:
 
 	CPatchStr(
 		size_t size,
+		size_t maxSize,
 		Patch* arr,
 		size_t len
 	)	:	size(size),
 			maxSize(size),
 			array(arr),
 			length(len) {}
+
+
+	CPatchStr(const CPatchStr& other)
+		:	size(other.size),
+			maxSize(other.maxSize),
+			length(other.length) {
+		array = new Patch[other.maxSize];
+		for (size_t i = 0; i < other.size; i++) {
+			array[i] = other.array[i];
+		}
+	}
 
 
 	~CPatchStr() {
@@ -135,6 +147,23 @@ public:
 	}
 
 
+	CPatchStr& operator=(const CPatchStr& rhs) {
+		if (this == &rhs) return *this;
+
+		Patch* newArray = new Patch[rhs.maxSize];
+		for (size_t i = 0; i < rhs.size; i++) {
+			newArray[i] = rhs.array[i];
+		}
+
+		array = newArray;
+		size = rhs.size;
+		maxSize = rhs.maxSize;
+		length = rhs.length;
+
+		return *this;
+	}
+
+
 	CPatchStr subStr(size_t from, size_t len) {
 		if (len == 0) return {""};
 
@@ -161,7 +190,7 @@ public:
 
 		newArray[count - 1].length = from + length - array[endPatchI].globalOffset;
 
-		return {count, newArray, len};
+		return {count, count, newArray, len};
 	}
 
 
