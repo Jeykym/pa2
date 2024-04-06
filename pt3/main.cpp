@@ -56,7 +56,9 @@ public:
 	}
 
 
-	CPatchStr(const CPatchStr& other) {
+	CPatchStr(const CPatchStr& other)
+			:	size(other.size),
+				maxSize(other.maxSize) {
 		if (this == &other) return;
 
 		array = new Patch[other.size];
@@ -111,7 +113,58 @@ public:
 		return str;
 	}
 
+
+	CPatchStr& append(const CPatchStr& src) {
+		if (size + src.size > maxSize) realloc(size + src.size);
+
+		// appending self
+		if (this == &src) {
+			appendSelf();
+		} else {
+			appendOther(src);
+		}
+
+		return *this;
+	}
+
 private:
+	void appendSelf() {
+		// just copy the array to the end
+		for (size_t i = 0; i < size; i++) {
+			array[size + i] = array[i];
+		}
+		size *= 2;
+		updateOffsets();
+		printOffsets();
+	}
+
+
+	void appendOther(const CPatchStr& src) {
+		// copy the other patchstr' array
+		for (size_t i = 0; i < src.size; i++) {
+			array[size] = src.array[i];
+			size++;
+		}
+
+		updateOffsets();
+		printOffsets();
+	}
+
+	void updateOffsets() {
+		size_t totalOffset = 0;
+		for (size_t i = 0; i < size; i++) {
+			array[i].globalOffset = totalOffset;
+			totalOffset += array[i].length;
+		}
+	}
+
+
+	void printOffsets() const {
+		for (size_t i = 0; i < size; i++) {
+			std::cout << array[i].globalOffset << std::endl;
+		}
+	}
+
 	size_t length() const {
 		size_t total = 0;
 
@@ -120,6 +173,19 @@ private:
 		}
 
 		return total;
+	}
+
+
+	void realloc(size_t newSize) {
+		maxSize = newSize * 2;
+		auto* newArray = new Patch[maxSize];
+
+		for (size_t i = 0; i < size; i++) {
+			newArray[i] = array[i];
+		}
+
+		delete [] array;
+		array = newArray;
 	}
 
 	size_t size;
@@ -148,15 +214,12 @@ bool stringMatch(
 
 
 int main() {
-	char tmpStr[100];
-
-	CPatchStr a("Hello, world!");
-	auto b = a;
-	CPatchStr c(b);
-
-	assert(stringMatch(a.toStr(), "Hello, world!"));
-	assert(stringMatch(b.toStr(), "Hello, world!"));
-	assert(stringMatch(c.toStr(), "Hello, world!"));
+	CPatchStr a("abc");
+	a.append(a);
+	assert(stringMatch(a.toStr(), "abcabc"));
+	CPatchStr b("def");
+	a.append(b);
+	assert(stringMatch(a.toStr(), "abcabcdef"));
 
 	return EXIT_SUCCESS;
 }
