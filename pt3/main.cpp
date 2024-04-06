@@ -91,7 +91,32 @@ public:
 		return *this;
 	}
 
+
+	char* toStr() const {
+		char* str = new char[length()];
+
+		size_t strI = 0;
+		for (size_t i = 0; i < size; i++) {
+			for (size_t j = 0; j < array[i].length; j++) {
+				str[strI] = array[i].str[j];
+				strI++;
+			}
+		}
+
+		return str;
+	}
+
 private:
+	size_t length() const {
+		size_t total = 0;
+
+		for (size_t i = 0; i < size; i++) {
+			total += array[i].length;
+		}
+
+		return total;
+	}
+
 	size_t size;
 	size_t maxSize;
 	Patch* array;
@@ -99,10 +124,31 @@ private:
 
 
 #ifndef __PROGTEST__
-	int main() {
-		CPatchStr a("test");
-		auto b = a;
+void print(const CPatchStr& patchStr) {
+	auto str = patchStr.toStr();
+	std::cout << str << std::endl;
+	delete [] str;
+}
 
-		return EXIT_SUCCESS;
-	}
+
+bool stringMatch(
+	const CPatchStr& patchStr,
+	const char* expected
+) {
+	auto str = patchStr.toStr();
+	auto res = std::strcmp(str, expected) == 0;
+	delete [] str;
+	return res;
+}
+
+
+
+int main() {
+	CPatchStr a("Hello, world!");
+	auto b = a;
+
+	assert(stringMatch(a, "Hello, world!"));
+
+	return EXIT_SUCCESS;
+}
 #endif /* __PROGTEST__ */
