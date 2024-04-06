@@ -93,7 +93,9 @@ public:
 
 
 	char* toStr() const {
-		char* str = new char[length()];
+		// one extra space for '\0'
+		auto len = length();
+		char* str = new char[len + 1];
 
 		size_t strI = 0;
 		for (size_t i = 0; i < size; i++) {
@@ -102,6 +104,9 @@ public:
 				strI++;
 			}
 		}
+
+		// end the string
+		str[len] = '\0';
 
 		return str;
 	}
@@ -132,10 +137,9 @@ void print(const CPatchStr& patchStr) {
 
 
 bool stringMatch(
-	const CPatchStr& patchStr,
+	char* str,
 	const char* expected
 ) {
-	auto str = patchStr.toStr();
 	auto res = std::strcmp(str, expected) == 0;
 	delete [] str;
 	return res;
@@ -144,10 +148,15 @@ bool stringMatch(
 
 
 int main() {
+	char tmpStr[100];
+
 	CPatchStr a("Hello, world!");
 	auto b = a;
+	CPatchStr c(b);
 
-	assert(stringMatch(a, "Hello, world!"));
+	assert(stringMatch(a.toStr(), "Hello, world!"));
+	assert(stringMatch(b.toStr(), "Hello, world!"));
+	assert(stringMatch(c.toStr(), "Hello, world!"));
 
 	return EXIT_SUCCESS;
 }
