@@ -9,6 +9,7 @@
 #include <memory>
 #include <stdexcept>
 #endif /* __PROGTEST__ */
+#include <string>
 
 
 //class CPatchStr
@@ -173,6 +174,11 @@ public:
 	}
 
 
+	size_t Length() {
+		return length;
+	}
+
+
 private:
 	void appendSelf() {
 		for (size_t i = 0; i < size; i++) {
@@ -248,54 +254,97 @@ const char * expected )
 	return res;
 }
 
+
+
+void appendTest() {
+	/* testing appending
+ */
+	CPatchStr x ( "test" );
+	std::string s = "test";
+	x . append ( "ing" );
+	s . append ( "ing" );
+	x . append ( " this" );
+	s . append ( " this" );
+	x . append ( " append function" );
+	s . append ( " append function" );
+	x . append ( ", hopefully" );
+	s . append ( ", hopefully" );
+	x . append ( " its going okay" );
+	s . append ( " its going okay" );
+	assert ( stringMatch ( x . toStr (), s . c_str () ) );
+
+	CPatchStr x2 ( "another" );
+	std::string s2 ( "another" );
+	x2 . append ( " string" );
+	s2 . append ( " string" );
+	x2 . append ( x );
+	s2 . append ( s );
+	x2 . append ( x2 );
+	s2 . append ( s2 );
+	assert ( stringMatch ( x2 . toStr (), s2 . c_str () ) );
+	x . append ( "a" );
+	s . append ( "a" );
+	x . append ( "b" );
+	s . append ( "b" );
+	x . append ( "c" );
+	s . append ( "c" );
+	x . append ( "d" );
+	s . append ( "d" );
+	x . append ( "e" );
+	s . append ( "e" );
+	x . append ( "f" );
+	s . append ( "f" );
+	x . append ( "g" );
+	s . append ( "g" );
+	x . append ( "h" );
+	s . append ( "h" );
+	assert ( stringMatch ( x . toStr (), s . c_str () ) );
+	x . append ( "" );
+	s . append ( "" );
+	x . append ( "finaltest" );
+	s . append ( "finaltest" );
+	assert ( stringMatch ( x . toStr (), s . c_str () ) );
+
+	/* 147 allocs
+	 */
+}
+
+
+void subStringTest() {
+	/* testing (SubStr), chaining of commands
+	*/
+
+	CPatchStr x1 ( "substrtest" );
+	std::string s1 ( "substrtest" );
+	CPatchStr x2 ( x1 . subStr ( 3, 3 ) );
+	std::string    s2 ( s1 . substr ( 3, 3 ) );
+	assert ( stringMatch ( x2 . toStr (), s2 . c_str () ) );
+	x2 . append ( "moretesting" );
+	s2 . append ( "moretesting" );
+	CPatchStr x3 ( x2 . subStr ( 5, 5 ) );
+	std::string    s3 ( s2 . substr ( 5, 5 ) );
+	assert ( stringMatch ( x3 . toStr (), s3 . c_str () ) );
+	CPatchStr x4 ( x1 . subStr ( 0, 0 ) );
+	std::string    s4 ( s1 . substr ( 0, 0 ) );
+	assert ( stringMatch ( x4 . toStr (), s4 . c_str () ) );
+	try
+	{
+		CPatchStr x5 ( x4 . subStr ( 0, 1 ) );
+		assert ( "No exception thrown" == nullptr );
+	}
+	catch ( const std::out_of_range & e )
+	{
+	}
+	catch ( ... )
+	{
+		assert ( "Invalid exception thrown." == nullptr );
+	}
+}
+
 int main ()
 {
-	char tmpStr[100];
-
-	CPatchStr a ( "test" );
-	assert ( stringMatch ( a . toStr (), "test" ) );
-	std::strncpy ( tmpStr, " da", sizeof ( tmpStr ) - 1 );
-	a . append ( tmpStr );
-	assert ( stringMatch ( a . toStr (), "test da" ) );
-	std::strncpy ( tmpStr, "ta", sizeof ( tmpStr ) - 1 );
-	a . append ( tmpStr );
-	assert ( stringMatch ( a . toStr (), "test data" ) );
-	std::strncpy ( tmpStr, "foo text", sizeof ( tmpStr ) - 1 );
-	CPatchStr b ( tmpStr );
-	assert ( stringMatch ( b . toStr (), "foo text" ) );
-	CPatchStr c ( a );
-	assert ( stringMatch ( c . toStr (), "test data" ) );
-	CPatchStr d ( a . subStr ( 3, 5 ) );
-	assert ( stringMatch ( d . toStr (), "t dat" ) );
-	d . append ( b );
-	assert ( stringMatch ( d . toStr (), "t datfoo text" ) );
-	d . append ( b . subStr ( 3, 4 ) );
-	assert ( stringMatch ( d . toStr (), "t datfoo text tex" ) );
-	c . append ( d );
-	assert ( stringMatch ( c . toStr (), "test datat datfoo text tex" ) );
-	c . append ( c );
-	assert ( stringMatch ( c . toStr (), "test datat datfoo text textest datat datfoo text tex" ) );
-//	d . insert ( 2, c . subStr ( 6, 9 ) );
-//	assert ( stringMatch ( d . toStr (), "t atat datfdatfoo text tex" ) );
-//	b = "abcdefgh";
-//	assert ( stringMatch ( b . toStr (), "abcdefgh" ) );
-//	assert ( stringMatch ( d . toStr (), "t atat datfdatfoo text tex" ) );
-//	assert ( stringMatch ( d . subStr ( 4, 8 ) . toStr (), "at datfd" ) );
-//	assert ( stringMatch ( b . subStr ( 2, 6 ) . toStr (), "cdefgh" ) );
-//	try
-//	{
-//		b . subStr ( 2, 7 ) . toStr ();
-//		assert ( "Exception not thrown" == nullptr );
-//	}
-//	catch ( const std::out_of_range & e )
-//	{
-//	}
-//	catch ( ... )
-//	{
-//		assert ( "Invalid exception thrown" == nullptr );
-//	}
-////	a . remove ( 3, 5 );
-////	assert ( stringMatch ( a . toStr (), "tesa" ) );
+	appendTest();
+	subStringTest();
 	return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
