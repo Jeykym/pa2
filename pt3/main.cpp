@@ -83,6 +83,43 @@ public:
 	}
 
 
+	CPatchStr(
+		size_t from,
+		size_t len,
+		const CPatchStr& src
+	) {
+		size_t startI = find(from, src.array, src.size);
+		size_t endI = find(from + len - 1, src.array, src.size);
+
+		length = len;
+		size = endI - startI + 1;
+		maxSize = size * 2;
+		array = new Patch[maxSize];
+
+		auto& start = src.array[startI];
+		auto& end = src.array[endI];
+
+		for (size_t i = 0; i < size; i++) {
+			array[i] = src.array[startI + i];
+		}
+
+		array[0].offset = from - src.array[startI].globalOffset;
+		array[0].length = src.array[startI].length - array[0].offset;
+
+		if (startI == endI) {
+			array[0].length = len;
+		} else {
+			array[size - 1].length = from + len - array[endI].globalOffset;
+		}
+
+		size_t totalOffset = 0;
+		for (size_t i = 0; i < size; i++) {
+			array[i].globalOffset = totalOffset;
+			totalOffset += array[i].length;
+		}
+	}
+
+
 	~CPatchStr() {
 		delete [] array;
 	}
@@ -97,6 +134,12 @@ public:
 			appendOther(src);
 		}
 
+		size_t totalOffset = 0;
+		for (size_t i = 0; i < size; i++) {
+			array[i].globalOffset = totalOffset;
+			totalOffset += array[i].length;
+		}
+
 		return *this;
 	}
 
@@ -106,15 +149,27 @@ public:
 
 		size_t strI = 0;
 		for (size_t i = 0; i < size; i++) {
-			for (size_t j = array[i].offset; j < array[i].length; j++) {
+			for (size_t j = 0; j < array[i].length; j++) {
 				auto patchStr = array[i].str.get();
-				str[strI++] = patchStr->chars[j];
+				str[strI++] = patchStr->chars[array[i].offset + j];
 			}
 		}
 
 		str[length] = '\0';
 
 		return str;
+	}
+
+
+	CPatchStr subStr(
+		size_t from,
+		size_t len
+	) const {
+		if (from + len >= length) throw std::out_of_range("Out of range");
+
+		if (len == 0) return {""};
+
+		return {from, len, *this};
 	}
 
 
@@ -134,7 +189,6 @@ private:
 
 		for (size_t i = 0; i < src.size; i++) {
 			array[size + i] = src.array[i];
-			array[size + i].globalOffset = array[size + i - 1].globalOffset + src.array[i].length;
 		}
 
 		size += src.size;
@@ -155,6 +209,9 @@ private:
 
 	// returns the index of a patch containing the pos
 	static size_t find(size_t pos, Patch* arr, size_t arrSize) {
+		auto& p0 = arr[0];
+		auto& p1 = arr[1];
+		auto& p2 = arr[2];
 		size_t left = 0;
 		size_t right = arrSize - 1;
 
@@ -208,16 +265,16 @@ int main ()
 	assert ( stringMatch ( b . toStr (), "foo text" ) );
 	CPatchStr c ( a );
 	assert ( stringMatch ( c . toStr (), "test data" ) );
-//	CPatchStr d ( a . subStr ( 3, 5 ) );
-//	assert ( stringMatch ( d . toStr (), "t dat" ) );
-//	d . append ( b );
-//	assert ( stringMatch ( d . toStr (), "t datfoo text" ) );
-//	d . append ( b . subStr ( 3, 4 ) );
-//	assert ( stringMatch ( d . toStr (), "t datfoo text tex" ) );
-//	c . append ( d );
-//	assert ( stringMatch ( c . toStr (), "test datat datfoo text tex" ) );
-//	c . append ( c );
-//	assert ( stringMatch ( c . toStr (), "test datat datfoo text textest datat datfoo text tex" ) );
+	CPatchStr d ( a . subStr ( 3, 5 ) );
+	assert ( stringMatch ( d . toStr (), "t dat" ) );
+	d . append ( b );
+	assert ( stringMatch ( d . toStr (), "t datfoo text" ) );
+	d . append ( b . subStr ( 3, 4 ) );
+	assert ( stringMatch ( d . toStr (), "t datfoo text tex" ) );
+	c . append ( d );
+	assert ( stringMatch ( c . toStr (), "test datat datfoo text tex" ) );
+	c . append ( c );
+	assert ( stringMatch ( c . toStr (), "test datat datfoo text textest datat datfoo text tex" ) );
 //	d . insert ( 2, c . subStr ( 6, 9 ) );
 //	assert ( stringMatch ( d . toStr (), "t atat datfdatfoo text tex" ) );
 //	b = "abcdefgh";
