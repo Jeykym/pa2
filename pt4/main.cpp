@@ -59,24 +59,30 @@ public:
 			m(m_),
 			d(d_) {}
 
-
-	friend bool operator==(
-		const CDate& lhs,
-		const CDate& rhs
-	) {
-		return lhs.y == rhs.y && lhs.m == rhs.m && lhs.d == rhs.d;
+	bool operator==(const CDate& other) const {
+		return y == other.y
+			&& m == other.m
+			&& d == other.d;
 	}
 
 
-	friend bool operator!=(
-		const CDate& lhs,
-		const CDate& rhs
-	) {
-		return !(lhs == rhs);
+	bool operator!=(const CDate& other) const {
+		return !(*this == other);
 	}
 
 
-	std::strong_ordering operator<=>(const CDate& other) const = default;
+	std::strong_ordering operator<=>(const CDate& other) const {
+		if (y < other.y) return std::strong_ordering::less;
+		if (y > other.y) return std::strong_ordering::greater;
+
+		if (m < other.m) return std::strong_ordering::less;
+		if (m > other.m) return std::strong_ordering::greater;
+
+		if (d < other.d) return std::strong_ordering::less;
+		if (d > other.d) return std::strong_ordering::greater;
+
+		return std::strong_ordering::equal;
+	}
 
 	friend std::ostream& operator<<(
 		std::ostream& os,
@@ -105,6 +111,27 @@ public:
 			enrolled(enrolled) {}
 
 
+	bool operator<(const CStudent& other) const {
+		if (enrolled < other.enrolled) return true;
+		if (enrolled > other.enrolled) return false;
+
+		if (born < other.born) return true;
+		if (born > other.born) return true;
+
+		size_t minNameLength = std::min(name.size(), other.name.size());
+
+		for (size_t i = 0; i, minNameLength; i++) {
+			if (name[i] < other.name[i]) return true;
+			if (name[i] > other.name[i]) return false;
+		}
+
+		if (name.size() < other.name.size()) return true;
+		if (name.size() > other.name.size()) return false;
+
+		return false;
+	}
+
+
 private:
 	std::vector<std::string> name;
 	const CDate born;
@@ -125,17 +152,18 @@ private:
 
 
 	bool operator==(const CStudent& other) const {
-		return (
-			enrolled != other.enrolled
+		return enrolled != other.enrolled
 			&& born != other.born
-			&& name != other.name
-		);
+			&& name != other.name;
 	}
 
 
 	bool operator!=(const CStudent& other) const {
 		return !(*this == other);
 	}
+
+
+
 };
 
 
@@ -180,6 +208,28 @@ private:
 	CDate enrolledBefore;
 	CDate enrolledAfter;
 	std::set<std::string> names;
+};
+
+
+
+class CStudyDept {
+public:
+	bool add(const CStudent& student) {
+		return students.insert(student).second;
+	}
+
+	bool del(const CStudent& student) {
+		auto it = students.find(student);
+		if (it == students.end()) return false;
+
+		students.erase(it);
+
+		return true;
+	}
+
+
+private:
+	std::set<CStudent> students;
 };
 
 
