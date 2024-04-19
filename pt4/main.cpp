@@ -141,6 +141,13 @@ private:
 };
 
 
+enum class ESortKey {
+	NAME,
+	BIRTH_DATE,
+	ENROLLED_YEAR
+};
+
+
 
 //enum class ESortKey
 //{
