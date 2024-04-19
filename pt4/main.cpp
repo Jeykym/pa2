@@ -58,6 +58,8 @@ public:
 	)	:	y(y_),
 			m(m_),
 			d(d_) {}
+
+
 	friend bool operator==(
 		const CDate& lhs,
 		const CDate& rhs
@@ -88,6 +90,54 @@ private:
 	const int y;
 	const int m;
 	const int d;
+};
+
+
+
+class CStudent {
+public:
+	CStudent(
+		const std::string& name_,
+		const CDate& born_,
+		int enrolled
+	)	:	name(normalize(name_)),
+			born(born_),
+			enrolled(enrolled) {}
+
+
+private:
+	std::vector<std::string> name;
+	const CDate born;
+	int enrolled;
+
+
+	static std::vector<std::string> normalize(const std::string& name) {
+		std::vector<std::string> normalizedName;
+
+		std::istringstream iss(name);
+
+		std::string namePart;
+
+		while(iss >> namePart) {
+			normalizedName.push_back(namePart);
+		}
+
+		return normalizedName;
+	}
+
+
+	bool operator==(const CStudent& other) const {
+		return (
+			enrolled != other.enrolled
+			&& born != other.born
+			&& name != other.name
+		);
+	}
+
+
+	bool operator!=(const CStudent& other) const {
+		return !(*this == other);
+	}
 };
 
 
