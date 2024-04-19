@@ -87,9 +87,9 @@ public:
 
 
 private:
-	const int y;
-	const int m;
-	const int d;
+	int y;
+	int m;
+	int d;
 };
 
 
@@ -118,9 +118,7 @@ private:
 
 		std::string namePart;
 
-		while(iss >> namePart) {
-			normalizedName.push_back(namePart);
-		}
+		while(iss >> namePart) normalizedName.push_back(namePart);
 
 		return normalizedName;
 	}
@@ -141,10 +139,47 @@ private:
 };
 
 
+
 enum class ESortKey {
 	NAME,
 	BIRTH_DATE,
 	ENROLLED_YEAR
+};
+
+
+
+class CFilter {
+	CFilter()
+		:	enrolledBefore(CDate(INT_MAX, INT_MAX, INT_MAX)),
+			enrolledAfter(CDate(INT_MIN, INT_MIN, INT_MIN)) {}
+
+
+	CFilter& bornBefore(const CDate& date) {
+		enrolledBefore = date;
+		return *this;
+	}
+
+
+	CFilter& bornAfter(const CDate& date) {
+		enrolledAfter = date;
+		return *this;
+	}
+
+
+	CFilter& name(const std::string& name) {
+		std::istringstream iss(name);
+		std::string namePart;
+
+		while (iss >> namePart) names.insert(namePart);
+
+		return *this;
+	}
+
+
+private:
+	CDate enrolledBefore;
+	CDate enrolledAfter;
+	std::set<std::string> names;
 };
 
 
@@ -207,6 +242,9 @@ int main ( void )
 	assert(CDate(1980, 4, 11) != CDate(1980, 4, 10));
 	assert(CDate(1980, 4, 11) != CDate(1980, 5, 11));
 	assert(CDate(1980, 4, 11) != CDate(1981, 4, 11));
+	CDate a(1980, 4, 11);
+	auto b = a;
+	assert(b == a);
 //	CStudyDept x0;
 //	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) );
 //	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) ) );
