@@ -159,6 +159,81 @@ enum ESortKey {
 
 
 
+class CStudent {
+public:
+	CStudent(
+		const std::string& name,
+		const CDate& born,
+		int enrolled
+	)	:	name_(splitName(name)),
+			bornYear_(born),
+			enrollYear_(enrolled),
+			registrationIndex(0) {}
+
+
+	bool operator==(const CStudent& other) const {
+		if (enrollYear_ != other.enrollYear_) return false;
+
+		if ((bornYear_ <=> other.bornYear_) != std::strong_ordering::equal) return false;
+
+		if (name_.size() != other.name_.size()) return false;
+
+		// comparison depends on the word order and is case-sensitive
+		for (size_t i = 0; i < name_.size(); i++) {
+			if (name_[i] != other.name_[i]) return false;
+		}
+
+		return true;
+	}
+
+
+	// compares by enrollYear_, bornYear_ and name (alphabetically, then by size)
+	bool operator<(const CStudent& other) const {
+		if (enrollYear_ < other.enrollYear_) return true;
+		if (enrollYear_ > other.enrollYear_) return false;
+
+		if (bornYear_ < other.bornYear_) return true;
+		if (bornYear_ > other.bornYear_) return false;
+
+		size_t smallerSize = std::min(name_.size(), other.name_.size());
+
+		// compare names alphabetically
+		for (size_t i = 0; i < smallerSize; i++) {
+			if (name_[i] < other.name_[i]) return true;
+			if (name_[i] > other.name_[i]) return true;
+		}
+
+		// if names are equal but different size, smaller is the shorter one
+		if (name_.size() < other.name_.size()) return true;
+		if (name_.size() > other.name_.size()) return true;
+
+		// they're equal, return false for std::set's lower_bound
+		return false;
+	}
+private:
+	int enrollYear_;
+	const CDate bornYear_;
+	std::vector<std::string> name_;
+	mutable size_t registrationIndex;
+
+
+	// returns a vector where each element is a word in the student's name
+	// preserves word order and letter case
+	static std::vector<std::string>  splitName(const std::string& name) {
+		std::vector<std::string> res;
+
+		std::istringstream iss(name);
+		std::string namePart;
+
+		// skipping whitespaces
+		while (iss >> namePart) res.push_back(namePart);
+
+		return res;
+	}
+};
+
+
+
 #ifndef __PROGTEST__
 int main ( void )
 {
@@ -169,23 +244,26 @@ int main ( void )
 	assert(CDate(1980, 5, 11) <=> CDate(1980, 4, 11) == std::strong_ordering::greater);
 	assert(CDate(1979, 4, 11) <=> CDate(1980, 4, 11) == std::strong_ordering::less);
 	assert(CDate(1981, 4, 11) <=> CDate(1980, 4, 11) == std::strong_ordering::greater);
+
+
+
 //	CStudyDept x0;
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2010 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2010 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1997, 6, 17), 2010 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1997, 6, 17), 2010 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1980, 4, 11), 2016 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1980, 4, 11), 2016 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2016 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2016 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2010 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2010 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1997, 6, 17), 2016 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1997, 6, 17), 2016 ) ) );
-//	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2016 ) );
-//	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2016 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2010 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2010 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1997, 6, 17), 2010 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1997, 6, 17), 2010 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1980, 4, 11), 2016 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1980, 4, 11), 2016 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2016 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1980, 4, 11), 2016 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2010 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2010 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "James Bond", CDate ( 1997, 6, 17), 2016 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "James Bond", CDate ( 1997, 6, 17), 2016 ) ) );
+	assert ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) != CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2016 ) );
+	assert ( ! ( CStudent ( "James Bond", CDate ( 1980, 4, 11), 2010 ) == CStudent ( "Peter Peterson", CDate ( 1997, 6, 17), 2016 ) ) );
 //	assert ( x0 . addStudent ( CStudent ( "John Peter Taylor", CDate ( 1983, 7, 13), 2014 ) ) );
 //	assert ( x0 . addStudent ( CStudent ( "John Taylor", CDate ( 1981, 6, 30), 2012 ) ) );
 //	assert ( x0 . addStudent ( CStudent ( "Peter Taylor", CDate ( 1982, 2, 23), 2011 ) ) );
