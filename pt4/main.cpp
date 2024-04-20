@@ -165,10 +165,20 @@ public:
 		const std::string& name,
 		const CDate& born,
 		int enrolled
-	)	:	name_(splitName(name)),
-			bornYear_(born),
+	)	:	bornYear_(born),
 			enrollYear_(enrolled),
-			registrationIndex(0) {}
+			registrationIndex(0) {
+		std::istringstream iss(name);
+		std::string namePart;
+
+		while (iss >> namePart) {
+			name_.push_back(namePart);
+
+			// normalize for CFilter
+			for (auto& c: namePart) c = std::tolower(c);
+			normalizedName_.push_back(namePart);
+		}
+	}
 
 
 	bool operator==(const CStudent& other) const {
@@ -214,6 +224,7 @@ private:
 	int enrollYear_;
 	const CDate bornYear_;
 	std::vector<std::string> name_;
+	std::vector<std::string> normalizedName_;
 	mutable size_t registrationIndex;
 
 
@@ -230,6 +241,48 @@ private:
 
 		return res;
 	}
+};
+
+
+
+class CFilter {
+	CFilter()
+		:	enrolledBefore_(INT_MAX),
+			enrolledAfter_(INT_MIN),
+			bornBefore_(CDate(INT_MAX, INT_MAX, INT_MAX)),
+			bornAfter_(CDate(INT_MIN, INT_MIN, INT_MIN)) {}
+
+
+	CFilter& enrolledBefore(int year) {
+		enrolledBefore_ = year;
+		return *this;
+	}
+
+
+	CFilter& enrolledAfter(int year) {
+		enrolledAfter_ = year;
+		return *this;
+	}
+
+
+	CFilter& bornBefore(const CDate& date) {
+		bornBefore_ = date;
+		return *this;
+	}
+
+
+	CFilter& bornAfter(const CDate& date) {
+		bornAfter_ = date;
+		return *this;
+	}
+
+
+private:
+	int enrolledBefore_;
+	int enrolledAfter_;
+	CDate bornBefore_;
+	CDate bornAfter_;
+	std::vector<std::string> name_;
 };
 
 
