@@ -287,6 +287,23 @@ private:
 
 
 
+class CSort {
+	CSort& addkey(
+		ESortKey key,
+		bool ascending
+	) {
+		keys_.emplace_back(key, ascending);
+		return *this;
+	}
+
+
+private:
+	// vector of criteria to be sorted by and whether ascending or descending
+	std::vector<std::pair<ESortKey, bool>> keys_;
+};
+
+
+
 #ifndef __PROGTEST__
 int main ( void )
 {
