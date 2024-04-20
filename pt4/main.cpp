@@ -151,6 +151,14 @@ private:
 
 
 
+enum ESortKey {
+	NAME,
+	BIRTH_YEAR,
+	ENROLL_YER
+};
+
+
+
 #ifndef __PROGTEST__
 int main ( void )
 {
