@@ -37,8 +37,7 @@ class CNetwork: public CBase {
 	CNetwork(const std::string& name)
 		:	name_(name) {}
 
-
-	virtual std::ostream& print(std::ostream& os) {
+	std::ostream& print(std::ostream& os) const override {
 		os << "Network: " << name_ << std::endl;
 		return os;
 	}
@@ -46,6 +45,23 @@ class CNetwork: public CBase {
 
 private:
 	const std::string name_;
+};
+
+
+
+class CComponent: public CBase {
+	std::ostream& print(std::ostream& os) const override {
+		os << "+-" << type_ << ',';
+		printProperties(os);
+		return os;
+	}
+
+
+	virtual std::ostream& printProperties(std::ostream& os) const = 0;
+
+
+protected:
+	std::string type_;
 };
 
 
@@ -183,6 +199,6 @@ int main ()
 //			 "  +-2001:718:2:2901::238\n"
 //			 "  +-CPU, 4 cores @ 2500MHz\n"
 //			 "  \\-Memory, 8000 MiB\n" );
-//	return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
