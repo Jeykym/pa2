@@ -20,6 +20,55 @@
 //class CDisk ...
 
 
+class CBase {
+	CBase(
+		bool isLast,
+		const std::string& type
+	)	:	isLast_(isLast),
+			type_(type) {}
+
+
+	friend std::ostream& operator<<(
+		std::ostream& os,
+		const CBase& obj
+	) {
+		obj.pad(os);
+		obj.begin(os);
+		obj.print(os);
+
+		return os;
+	}
+
+
+	virtual std::ostream& pad(std::ostream& os) const = 0;
+
+
+	std::ostream& begin(std::ostream& os) const {
+		os << (isLast_ ? "\\" : "+") << '-';
+		return os;
+	}
+
+
+	virtual std::ostream& print(std::ostream& os) const = 0;
+
+
+	bool last() const {
+		return isLast_;
+	}
+
+
+	void setLast(bool isLast) {
+		isLast_ = isLast;
+	}
+
+
+protected:
+	bool isLast_;
+	const std::string type_;
+};
+
+
+
 #ifndef __PROGTEST__
 template<typename T_>
 std::string toString ( const T_ & x )
