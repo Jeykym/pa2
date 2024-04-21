@@ -21,6 +21,7 @@
 
 
 class CBase {
+public:
 	explicit CBase(
 		const std::string& type
 	)	:	isLast_(true),
@@ -39,11 +40,16 @@ class CBase {
 	}
 
 
-	virtual std::ostream& pad(std::ostream& os) const = 0;
+	// first level printing
+	virtual std::ostream& pad(std::ostream& os) const {
+		os << "";
+		return os;
+	};
 
 
+	// +- for all but last which is /-
 	std::ostream& begin(std::ostream& os) const {
-		os << (isLast_ ? "//" : "+") << '-';
+		os << (isLast_ ? "\\" : "+") << '-';
 		return os;
 	}
 
@@ -51,9 +57,15 @@ class CBase {
 	virtual std::ostream& print(std::ostream& os) const = 0;
 
 
+	void setNotLast() {
+		isLast_ = false;
+	}
+
+
 protected:
 	bool isLast_;
 	const std::string type_;
+
 };
 
 
@@ -63,6 +75,17 @@ public:
 	using CBase::CBase;
 
 
+	std::ostream& print(std::ostream& os) const override {
+		os << type_ << ", ";
+		printProperties(os);
+		return os;
+	}
+
+
+	virtual std::ostream& printProperties(std::ostream& os) const = 0;
+
+
+	// second level print
 	std::ostream& pad(std::ostream& os) const override {
 		os << "| ";
 		return os;
@@ -72,7 +95,94 @@ public:
 
 
 class CCPU: public CComponent {
+public:
+	CCPU(
+		size_t cores,
+		size_t frequency
+	)	:	CComponent("CPU"),
+			cores_(cores),
+			frequency_(frequency) {}
 
+
+	std::ostream& printProperties(std::ostream& os) const override {
+		os << cores_ << " cores @ " << frequency_ << "MHz";
+		return os;
+	}
+
+
+private:
+	size_t cores_;
+	size_t frequency_;
+};
+
+
+
+class CComputer: public CBase {
+public:
+	explicit CComputer(const std::string& name)
+		:	CBase("Host"),
+			name_(name) {}
+
+
+	std::ostream& print(std::ostream& os) const override {
+		os << "Host: " << name_ << std::endl;
+
+		for (auto& component: components_) {
+			os << *component << std::endl;
+		}
+
+		return os;
+	}
+
+
+	CComputer& addComponent(const CCPU& cpu) {
+		if (!components_.empty()) components_[components_.size() - 1]->setNotLast();
+
+		components_.push_back(std::make_shared<CCPU>(cpu));
+
+		return *this;
+	}
+
+
+private:
+	const std::string name_;
+	std::vector<std::shared_ptr<CComponent>> components_;
+};
+
+
+
+class CNetwork {
+public:
+	CNetwork(const std::string& name)
+	:	name_(name) {}
+
+
+	CNetwork& addComputer(const CComputer& computer) {
+		if (!computers_.empty()) computers_[computers_.size() - 1].setNotLast();
+
+		computers_.push_back(computer);
+
+		return *this;
+	}
+
+
+	friend std::ostream& operator<<(
+		std::ostream& os,
+		const CNetwork& network
+	) {
+		os << "Network: " << network.name_ << std::endl;
+
+		for (auto& computer: network.computers_) {
+			os << computer;
+		}
+
+		return os;
+	}
+
+
+private:
+	const std::string name_;
+	std::vector<CComputer> computers_;
 };
 
 
@@ -88,6 +198,13 @@ std::string toString ( const T_ & x )
 
 int main ()
 {
+	CNetwork n("FIT network");
+	n.addComputer(
+	CComputer("progtest.fit.cvut.cz")
+		.addComponent(CCPU(8, 2400))
+		.addComponent(CCPU(8, 1400))
+	);
+	std::cout << n << std::endl;
 //	CNetwork n ( "FIT network" );
 //	n . addComputer (
 //	CComputer ( "progtest.fit.cvut.cz" ) .
