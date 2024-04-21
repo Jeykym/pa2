@@ -20,52 +20,6 @@
 //class CDisk ...
 
 
-class CBase {
-	virtual std::ostream& print(std::ostream& os) const = 0;
-
-	friend std::ostream& operator<<(
-		std::ostream& os,
-		const CBase& base
-	) {
-		return base.print(os);
-	}
-};
-
-
-
-class CNetwork: public CBase {
-	CNetwork(const std::string& name)
-		:	name_(name) {}
-
-	std::ostream& print(std::ostream& os) const override {
-		os << "Network: " << name_ << std::endl;
-		return os;
-	}
-
-
-private:
-	const std::string name_;
-};
-
-
-
-class CComponent: public CBase {
-	std::ostream& print(std::ostream& os) const override {
-		os << "+-" << type_ << ',';
-		printProperties(os);
-		return os;
-	}
-
-
-	virtual std::ostream& printProperties(std::ostream& os) const = 0;
-
-
-protected:
-	std::string type_;
-};
-
-
-
 #ifndef __PROGTEST__
 template<typename T_>
 std::string toString ( const T_ & x )
