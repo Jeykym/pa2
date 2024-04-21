@@ -21,10 +21,9 @@
 
 
 class CBase {
-	CBase(
-		bool isLast,
+	explicit CBase(
 		const std::string& type
-	)	:	isLast_(isLast),
+	)	:	isLast_(true),
 			type_(type) {}
 
 
@@ -44,7 +43,7 @@ class CBase {
 
 
 	std::ostream& begin(std::ostream& os) const {
-		os << (isLast_ ? "\\" : "+") << '-';
+		os << (isLast_ ? "//" : "+") << '-';
 		return os;
 	}
 
@@ -52,19 +51,28 @@ class CBase {
 	virtual std::ostream& print(std::ostream& os) const = 0;
 
 
-	bool last() const {
-		return isLast_;
-	}
-
-
-	void setLast(bool isLast) {
-		isLast_ = isLast;
-	}
-
-
 protected:
 	bool isLast_;
 	const std::string type_;
+};
+
+
+
+class CComponent: public CBase {
+public:
+	using CBase::CBase;
+
+
+	std::ostream& pad(std::ostream& os) const override {
+		os << "| ";
+		return os;
+	}
+};
+
+
+
+class CCPU: public CComponent {
+
 };
 
 
