@@ -20,86 +20,6 @@
 #include <functional>
 #include <iterator>
 #include <compare>
-#endif
-
-//class CDate
-//{
-//public:
-//	CDate                         ( int               y,
-//	int               m,
-//	int               d )
-//	: m_Y ( y ),
-//	  m_M ( m ),
-//	  m_D ( d )
-//	{
-//	}
-//
-//	std::strong_ordering     operator <=>                  ( const CDate     & other ) const = default;
-//
-//	friend std::ostream    & operator <<                   ( std::ostream    & os,
-//	const CDate     & d )
-//	{
-//		return os << d . m_Y << '-' << d . m_M << '-' << d . m_D;
-//	}
-//
-//private:
-//	int                      m_Y;
-//	int                      m_M;
-//	int                      m_D;
-//};
-//enum class ESortKey
-//{
-//	NAME,
-//	BIRTH_DATE,
-//	ENROLL_YEAR
-//};
-//#endif /* __PROGTEST__ */
-//class CStudent
-//{
-//public:
-//	CStudent                      ( const std::string & name,
-//	const CDate     & born,
-//	int               enrolled );
-//
-//	bool                     operator ==                   ( const CStudent  & other ) const;
-//	bool                     operator !=                   ( const CStudent  & other ) const;
-//private:
-//};
-//
-//class CFilter
-//{
-//public:
-//	CFilter                       ();
-//	CFilter                & name                          ( const std::string & name );
-//	CFilter                & bornBefore                    ( const CDate     & date );
-//	CFilter                & bornAfter                     ( const CDate     & date );
-//	CFilter                & enrolledBefore                ( int               year );
-//	CFilter                & enrolledAfter                 ( int               year );
-//private:
-//};
-//
-//class CSort
-//{
-//public:
-//	CSort                         ();
-//	CSort                  & addKey                        ( ESortKey          key,
-//	bool              ascending );
-//
-//private:
-//};
-//
-//class CStudyDept
-//{
-//public:
-//	CStudyDept                    ();
-//	bool                     addStudent                    ( const CStudent  & x );
-//	bool                     delStudent                    ( const CStudent  & x );
-//	std::list<CStudent>      search                        ( const CFilter   & flt,
-//	const CSort     & sortOpt ) const;
-//	std::set<std::string>    suggest                       ( const std::string & name ) const;
-//private:
-//};
-
 
 class CDate {
 public:
@@ -112,26 +32,7 @@ public:
 			d_(d) {}
 
 
-	// compares dates by year, month and day
-	std::strong_ordering operator<=>(const CDate& other) const {
-		// year
-		if (y_ < other.y_) return std::strong_ordering::less;
-		if (y_ > other.y_) return std::strong_ordering::greater;
-
-		// year equal
-		// month
-		if (m_ < other.m_) return std::strong_ordering::less;
-		if (m_ > other.m_) return std::strong_ordering::greater;
-
-		// month equal
-		// day
-		if (d_ < other.d_) return std::strong_ordering::less;
-		if (d_ > other.d_) return std::strong_ordering::greater;
-
-		// day equal
-
-		return std::strong_ordering::equal;
-	}
+	std::strong_ordering operator<=>(const CDate& other) const = default;
 
 
 	// puts the date as y-m-d into the stream
@@ -158,6 +59,9 @@ enum ESortKey {
 };
 
 
+#endif /* __PROGTEST__ */
+
+
 class CFilter;
 
 class CStudent {
@@ -166,10 +70,10 @@ public:
 		const std::string& name,
 		const CDate& born,
 		int enrolled
-	)	: birthDate_(born),
-		   enrollYear_(enrolled),
-		   name_(name),
-		   registrationIndex_(0){
+	)	:	enrollYear_(enrolled),
+			birthDate_(born),
+			name_(name),
+			registrationIndex_(0) {
 		std::istringstream iss(name);
 		std::string namePart;
 
@@ -192,9 +96,7 @@ public:
 		if (name_.size() != other.name_.size()) return false;
 
 		// comparison depends on the word order and is case-sensitive
-		for (size_t i = 0; i < name_.size(); i++) {
-			if (name_[i] != other.name_[i]) return false;
-		}
+		return name_ == other.name_;
 
 		return true;
 	}
@@ -442,6 +344,18 @@ public:
 	}
 
 
+	bool delStudent(const CStudent& student) {
+		auto it = students_.find(student);
+
+		// student is not in the db
+		if (it == students_.end()) return false;
+
+		students_.erase(it);
+
+		return true;
+	}
+
+
 	std::list<CStudent> search(
 		const CFilter& flt,
 		const CSort& sortOpt
@@ -490,10 +404,10 @@ public:
 			return a.registrationIndex() < b.registrationIndex();
 		});
 
-		for (auto& student: res) {
-			std::cout << student << std::endl;
-		}
-		std::cout << std::endl;
+//		for (auto& student: res) {
+//			std::cout << student << std::endl;
+//		}
+//		std::cout << std::endl;
 
 		return res;
 	}
@@ -518,8 +432,8 @@ public:
 			res.insert(student.name());
 		}
 
-		for (auto& n: res) std::cout << n << std::endl;
-		std::cout << std::endl;
+//		for (auto& n: res) std::cout << n << std::endl;
+//		std::cout << std::endl;
 
 		return res;
 	}
@@ -688,18 +602,18 @@ int main ( void )
 	"John Peter Taylor",
 	"Peter John Taylor"
 	}) );
-//	assert ( ! x0 . addStudent ( CStudent ( "James Bond", CDate ( 1981, 7, 16), 2013 ) ) );
-//	assert ( x0 . delStudent ( CStudent ( "James Bond", CDate ( 1981, 7, 16), 2013 ) ) );
-//	assert ( x0 . search ( CFilter () . bornAfter ( CDate ( 1980, 4, 11) ) . bornBefore ( CDate ( 1983, 7, 13) ) . name ( "John Taylor" ) . name ( "james BOND" ), CSort () . addKey ( ESortKey::ENROLL_YEAR, false ) . addKey ( ESortKey::BIRTH_DATE, false ) . addKey ( ESortKey::NAME, true ) ) == (std::list<CStudent>
-//	{
-//	CStudent ( "James Bond", CDate ( 1982, 7, 16), 2013 ),
-//	CStudent ( "James Bond", CDate ( 1981, 8, 16), 2013 ),
-//	CStudent ( "James Bond", CDate ( 1981, 7, 17), 2013 ),
-//	CStudent ( "Bond James", CDate ( 1981, 7, 16), 2013 ),
-//	CStudent ( "James Bond", CDate ( 1981, 7, 16), 2012 ),
-//	CStudent ( "John Taylor", CDate ( 1981, 6, 30), 2012 )
-//	}) );
-//	assert ( ! x0 . delStudent ( CStudent ( "James Bond", CDate ( 1981, 7, 16), 2013 ) ) );
+	assert ( ! x0 . addStudent ( CStudent ( "James Bond", CDate ( 1981, 7, 16), 2013 ) ) );
+	assert ( x0 . delStudent ( CStudent ( "James Bond", CDate ( 1981, 7, 16), 2013 ) ) );
+	assert ( x0 . search ( CFilter () . bornAfter ( CDate ( 1980, 4, 11) ) . bornBefore ( CDate ( 1983, 7, 13) ) . name ( "John Taylor" ) . name ( "james BOND" ), CSort () . addKey ( ESortKey::ENROLL_YEAR, false ) . addKey ( ESortKey::BIRTH_DATE, false ) . addKey ( ESortKey::NAME, true ) ) == (std::list<CStudent>
+	{
+	CStudent ( "James Bond", CDate ( 1982, 7, 16), 2013 ),
+	CStudent ( "James Bond", CDate ( 1981, 8, 16), 2013 ),
+	CStudent ( "James Bond", CDate ( 1981, 7, 17), 2013 ),
+	CStudent ( "Bond James", CDate ( 1981, 7, 16), 2013 ),
+	CStudent ( "James Bond", CDate ( 1981, 7, 16), 2012 ),
+	CStudent ( "John Taylor", CDate ( 1981, 6, 30), 2012 )
+	}) );
+	assert ( ! x0 . delStudent ( CStudent ( "James Bond", CDate ( 1981, 7, 16), 2013 ) ) );
 	return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
