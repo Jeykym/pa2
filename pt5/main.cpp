@@ -22,125 +22,30 @@
 
 class CBase {
 public:
-	CBase(
-		size_t depth
-	)	:	depth_(depth),
-			isLast_(true) {}
-
-
-	friend std::ostream& operator<<(
+	std::ostream& print(
 		std::ostream& os,
-		const CBase& obj
-	) {
-		obj.pad(os);
-		obj.begin(os);
-		obj.print(os);
-		return os;
-	}
-
-
-	virtual std::ostream& print(std::ostream& os) const = 0;
-
-
-	std::ostream& pad(std::ostream& os) const {
-		for (size_t i = 0; i < depth_; i++) {
-			os << "| ";
+		size_t depth,
+		const std::string& prefixPad,
+		const std::string& prefixBegin
+	) const {
+		for (size_t i = 0; i < depth; i++) {
+			os << prefixPad;
 		}
 
-		return os;
-	};
+		os << prefixBegin;
 
+		printProperties(os, depth, prefixPad, prefixBegin);
 
-	std::ostream& begin(std::ostream& os) const {
-		os << (isLast_ ? "\\" : "+") << "-";
 		return os;
 	}
 
 
-	void unsetLast() {
-		isLast_ = false;
-	}
-
-
-protected:
-	size_t depth_;
-	bool isLast_;
-};
-
-
-
-class CIP: public CBase {
-public:
-	CIP(
-		const std::string& value,
-		size_t depth
-	)	:	CBase(depth),
-			value_(value) {}
-
-
-	std::ostream& print(std::ostream& os) const override {
-		os << value_;
-		return os;
-	}
-
-
-private:
-	const std::string& value_;
-};
-
-
-
-class CComponent: public CBase {
-public:
-	CComponent(
-		const std::string& type,
-		size_t depth
-	)	:	CBase(depth),
-			type_(type) {}
-
-
-	void setDepth(size_t depth) {
-		depth_ = depth;
-	}
-
-
-private:
-	const std::string type_;
-};
-
-
-
-class CCPU: public CComponent {
-public:
-	CCPU(
-		size_t cores,
-		size_t frequency
-	)	:	CComponent("CPU", 0),
-			cores_(cores),
-			frequency_(frequency) {}
-
-
-private:
-	size_t cores_;
-	size_t frequency_;
-};
-
-
-
-class CMemory: public CComponent {
-
-};
-
-
-
-class CPartition: public CBase {
-
-};
-
-
-
-class CDisk: public CComponent {
-
+	virtual std::ostream& printProperties(
+		std::ostream& os,
+		size_t depth,
+		const std::string& prefixPad,
+		const std::string& prefixBegin
+	) const = 0;
 };
 
 
@@ -148,73 +53,16 @@ class CDisk: public CComponent {
 class CComputer: public CBase {
 public:
 	CComputer(const std::string& name)
-		:	CBase(0),
-			name_(name) {}
+		:	name_(name) {}
 
 
-	std::ostream& print(std::ostream& os) const override {
+	std::ostream& printProperties(
+		std::ostream& os,
+		size_t depth,
+		const std::string& prefixPad,
+		const std::string& prefixBegin
+	) const override {
 		os << "Host: " << name_ << std::endl;
-
-		for (auto& ip: ips_) os << ip;
-
-		return os;
-	}
-
-
-	CComputer& addAddress(const std::string& ip) {
-		checkUnsetLastIP();
-
-		ips_.emplace_back(ip, 0);
-
-		return *this;
-	}
-
-
-	CComputer& addComponent(const CCPU& cpu) {
-		checkUnsetLastIP();
-		checkUnsetLastComponent();
-
-
-		components_.push_back(std::make_shared<CCPU>(cpu));
-
-		return *this;
-	}
-
-
-	// there are no components after ips
-	void checkUnsetLastIP() {
-		if (components_.empty() && !ips_.empty()) ips_[ips_.size() - 1].unsetLast();
-	}
-
-
-	// printing at least one component after ips
-	void checkUnsetLastComponent() {
-		if (!components_.empty()) components_[components_.size() - 1]->unsetLast();
-	}
-
-
-
-
-private:
-	std::vector<CIP> ips_;
-	std::vector<std::shared_ptr<CComponent>> components_;
-	const std::string& name_;
-};
-
-
-
-class CNetwork: public CBase {
-public:
-	// first network
-	CNetwork(const std::string& name)
-		: 	CBase(0),
-			name_(name) {}
-
-
-	std::ostream& print(std::ostream& os) const override {
-		os << "Network: " << name_ << std::endl;
-
-		for (auto& computer: computers_) os << computer;
 
 		return os;
 	}
@@ -222,9 +70,56 @@ public:
 
 private:
 	const std::string name_;
-	std::vector<CComputer> computers_;
 };
 
+
+class CNetwork: public CBase {
+public:
+	CNetwork(const std::string name)
+		:	name_(name) {}
+
+
+	friend std::ostream& operator<<(
+		std::ostream& os,
+		const CNetwork& network
+	) {
+		network.print(os, 0, "| ", "");
+		return os;
+	}
+
+
+	std::ostream& printProperties(
+		std::ostream& os,
+		size_t depth,
+		const std::string& prefixPad,
+		const std::string& prefixBegin
+	) const override {
+		os << "Network: " << name_ << std::endl;
+
+		if (computers_.empty()) return os;
+
+		if (computers_.size() >= 2) {
+			for (size_t i = 0; i < computers_.size() - 1; i++) {
+				computers_[i].print(os, depth, prefixPad, "+-");
+			}
+		}
+
+		if (!computers_.empty()) computers_[computers_.size() - 1].print(os, depth, " ", "\\-");
+
+		return os;
+	}
+
+
+	CNetwork& addComputer(const CComputer& computer) {
+		computers_.emplace_back(computer);
+		return *this;
+	}
+
+
+private:
+	const std::string name_;
+	std::vector<CComputer> computers_;
+};
 
 
 #ifndef __PROGTEST__
@@ -238,6 +133,15 @@ std::string toString ( const T_ & x )
 
 int main ()
 {
+	CNetwork n("FIT network");
+	n.addComputer(CComputer("progtest.fit.cvut.cz"));
+	n.addComputer(CComputer("google.com"));
+	std::cout << n;
+	assert(toString(n) ==
+		"Network: FIT network\n"
+		"+-Host: progtest.fit.cvut.cz\n"
+		"\\-Host: google.com\n"
+	);
 //	CNetwork n ( "FIT network" );
 //	n . addComputer (
 //	CComputer ( "progtest.fit.cvut.cz" ) .
@@ -266,7 +170,6 @@ int main ()
 //	addComponent ( CCPU ( 4, 2500 ) ) .
 //	addAddress ( "2001:718:2:2901::238" ) .
 //	addComponent ( CMemory ( 8000 ) ) );
-//	std::cout << n << std::endl;
 //	assert ( toString ( n ) ==
 //			 "Network: FIT network\n"
 //			 "+-Host: progtest.fit.cvut.cz\n"
