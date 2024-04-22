@@ -22,32 +22,11 @@
 
 class CBase {
 public:
-	std::ostream& print(
+	virtual std::ostream& print(
 		std::ostream& os,
-		size_t depth,
-		const std::string& prefixPad,
-		const std::string& prefixBegin
-	) const {
-		for (size_t i = 0; i < depth; i++) {
-			os << prefixPad;
-		}
-
-		os << prefixBegin;
-
-		printProperties(os, depth, prefixPad, prefixBegin);
-
-		return os;
-	}
-
-
-	virtual std::ostream& printProperties(
-		std::ostream& os,
-		size_t depth,
-		const std::string& prefixPad,
-		const std::string& prefixBegin
+		const std::string& padString
 	) const = 0;
 };
-
 
 
 class CComputer: public CBase {
@@ -56,14 +35,15 @@ public:
 		:	name_(name) {}
 
 
-	std::ostream& printProperties(
-		std::ostream& os,
-		size_t depth,
-		const std::string& prefixPad,
-		const std::string& prefixBegin
-	) const override {
-		os << "Host: " << name_ << std::endl;
+	const std::string& name() const {
+		return name_;
+	}
 
+
+	std::ostream& print(
+		std::ostream& os,
+		const std::string& padString
+	) const override {
 		return os;
 	}
 
@@ -73,9 +53,11 @@ private:
 };
 
 
+
+
 class CNetwork: public CBase {
 public:
-	CNetwork(const std::string name)
+	CNetwork(const std::string& name)
 		:	name_(name) {}
 
 
@@ -83,35 +65,33 @@ public:
 		std::ostream& os,
 		const CNetwork& network
 	) {
-		network.print(os, 0, "| ", "");
+		network.print(os, "");
 		return os;
 	}
 
 
-	std::ostream& printProperties(
+	std::ostream& print(
 		std::ostream& os,
-		size_t depth,
-		const std::string& prefixPad,
-		const std::string& prefixBegin
+		const std::string& padString
 	) const override {
 		os << "Network: " << name_ << std::endl;
 
-		if (computers_.empty()) return os;
-
 		if (computers_.size() >= 2) {
 			for (size_t i = 0; i < computers_.size() - 1; i++) {
-				computers_[i].print(os, depth, prefixPad, "+-");
+				os << padString << "+-" << "Host: " << computers_[i].name() << std::endl;
 			}
 		}
 
-		if (!computers_.empty()) computers_[computers_.size() - 1].print(os, depth, " ", "\\-");
+		if (!computers_.empty()) {
+			os << padString << "\\-" << "Host: " << computers_[computers_.size() - 1].name() << std::endl;
+		}
 
 		return os;
 	}
 
 
 	CNetwork& addComputer(const CComputer& computer) {
-		computers_.emplace_back(computer);
+		computers_.push_back(computer);
 		return *this;
 	}
 
@@ -120,6 +100,7 @@ private:
 	const std::string name_;
 	std::vector<CComputer> computers_;
 };
+
 
 
 #ifndef __PROGTEST__
@@ -131,12 +112,13 @@ std::string toString ( const T_ & x )
 	return oss . str ();
 }
 
+
 int main ()
 {
 	CNetwork n("FIT network");
 	n.addComputer(CComputer("progtest.fit.cvut.cz"));
 	n.addComputer(CComputer("google.com"));
-	std::cout << n;
+	std::cout << n << std::endl;
 	assert(toString(n) ==
 		"Network: FIT network\n"
 		"+-Host: progtest.fit.cvut.cz\n"
