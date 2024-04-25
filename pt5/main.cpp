@@ -25,7 +25,7 @@ class CBase {
 public:
 	virtual void print(std::ostream& os, const std::string& prefix, const std::string& begin) const = 0;
 
-	bool isLast(const std::string& begin) const {
+	static bool isLast(const std::string& begin) {
 		return begin == "\\-";
 	}
 };
@@ -156,6 +156,24 @@ public:
 	}
 
 
+
+	CComputer& operator=(const CComputer& other) {
+		if (this == &other) return *this;
+
+		name_ = other.name_;
+		ips_ = other.ips_;
+
+		components_.clear();
+
+
+		for (auto& component: other.components_) {
+			components_.push_back(component->clone());
+		}
+
+		return *this;
+	}
+
+
 	void print(std::ostream& os, const std::string& prefix, const std::string& begin) const override {
 		os << prefix << begin << "Host: " << name_ << std::endl;
 	}
@@ -213,7 +231,7 @@ public:
 
 
 private:
-	const std::string name_;
+	std::string name_;
 	std::vector<std::string> ips_;
 	std::vector<std::unique_ptr<CComponent>> components_;
 };
@@ -270,7 +288,7 @@ public:
 
 
 private:
-	const std::string name_;
+	std::string name_;
 	std::vector<CComputer> computers_;
 };
 
@@ -411,6 +429,7 @@ int main ()
 			 "  +-2001:718:2:2901::238\n"
 			 "  +-CPU, 4 cores @ 2500MHz\n"
 			 "  \\-Memory, 8000 MiB\n" );
+	CComputer test("progtet");
 	return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
